@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32825.248
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LearningSystem", "LearningSystem.csproj", "{C8BE44F1-8918-4305-A837-4491AF11221C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Library.Danvas3", "..\Library.Danvas3\Library.Danvas3.csproj", "{2ED697CF-B818-40F1-A6AC-ABCA4C711B21}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C8BE44F1-8918-4305-A837-4491AF11221C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8BE44F1-8918-4305-A837-4491AF11221C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8BE44F1-8918-4305-A837-4491AF11221C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8BE44F1-8918-4305-A837-4491AF11221C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2ED697CF-B818-40F1-A6AC-ABCA4C711B21}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2ED697CF-B818-40F1-A6AC-ABCA4C711B21}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2ED697CF-B818-40F1-A6AC-ABCA4C711B21}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2ED697CF-B818-40F1-A6AC-ABCA4C711B21}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {69EDB3E1-F5E2-4BE4-9EDF-6633F3314687}
+	EndGlobalSection
+EndGlobal
