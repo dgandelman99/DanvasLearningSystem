@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 
 namespace Library.Danvas3.models
 {
-    public class Module
+    public class PageItem : ContentItem
     {
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public List<ContentItem> Content { get; set; }
+        public string HTMLBody { get; set; }
     }
 }
