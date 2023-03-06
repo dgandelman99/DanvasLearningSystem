@@ -199,7 +199,7 @@ namespace Library.Danvas3.models
                 Console.Write("Enter Group Name: ");
                 string name = Console.ReadLine() ?? string.Empty;
                 Console.Write("Enter Group Weight: ");
-                int weight = int.Parse(Console.ReadLine());
+                double weight = double.Parse(Console.ReadLine() ?? string.Empty);
 
                 AssignmentGroup newGroup = new AssignmentGroup(name, weight);
                 _course.AddAssignmentGroup(newGroup);

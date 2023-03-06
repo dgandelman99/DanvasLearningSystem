@@ -600,6 +600,7 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
             if (student == null)
             {
                 Console.WriteLine("Student not found.");
+                Console.ReadKey();
                 return;
             }
             if (!course.Roster.Contains(student))
