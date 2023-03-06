@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Data;
+using System.Reflection;
+using System.Xml.Linq;
 using Library.Danvas3.models;
 
 namespace Danvas3 // Note: actual namespace depends on the project name.
@@ -7,18 +10,11 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
     {
         static List<Course> courses = new List<Course>();
         static List<Person> students = new List<Person>();
-        /*
-        static Assignment testAssignment = new Assignment
-        {
-            Name = "Test Assignment",
-            Description = "This is a test assignment",
-            TotalAvailablePoints = 100,
-            DueDate = DateTime.Now.AddDays(7)
-        };
-        */
+        private static HashSet<string> courseCodes = new HashSet<string>();
 
         static void Main(string[] args)
         {
+
             bool running = true;
             while (running)
             {
@@ -37,9 +33,12 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
                 Console.WriteLine("11. Update a student's information");
                 Console.WriteLine("12. Create an assignment");
                 Console.WriteLine("13. View course information");
+                Console.WriteLine("14. Grade a student's assignment");
+                Console.WriteLine("15. Course Content Manager");
+                Console.WriteLine("16. Calculate Student GPA");
                 Console.WriteLine("0. Exit");
 
-                int choice = GetChoice(13);
+                int choice = GetChoice(16);
 
                 switch (choice)
                 {
@@ -82,13 +81,22 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
                     case 13:
                         ShowCourseInfo();
                         break;
+                    case 14:
+                        AssignGradeToStudent();
+                        break;
+                    case 15:
+                        GoToCourseManager();
+                        break;
+                    case 16:
+                        CalculateGPA();
+                        break;
                     case 0:
                         choice = 0;
                         return;
                     default:
                         Console.WriteLine("Invalid choice.");
                         break;
-                }                      
+                }
             }
         }
 
@@ -105,22 +113,42 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
 
         static void CreateCourse()
         {
-            Console.Write("Enter the course code: ");
-            string code = Console.ReadLine() ?? string.Empty;
+            bool uniqueCode = false;
+            string code = "XXXX";
+            while (!uniqueCode)
+            {
+                Console.Write("Enter the course code: ");
+                code = Console.ReadLine().ToUpper().Replace(" ", "") ?? string.Empty;
+                if (!IsCodeUnique(code))
+                {
+                    Console.Write("ERROR: Course code already in use. Try again. ");
+                    Console.ReadKey();
+                    return;
+                }
+                else uniqueCode = true;
+            }
+            courseCodes.Add(code);
             Console.Write("Enter the course name: ");
             string name = Console.ReadLine() ?? string.Empty;
+            Console.Write("Enter course credit hours: ");;
+            int credits = Convert.ToInt32(Console.ReadLine() ?? string.Empty);
             Console.Write("Enter the course description: ");
             string description = Console.ReadLine() ?? string.Empty;
             Course course = new Course
             {
                 Code = code,
                 Name = name,
-                Description = description
+                Description = description,
+                CreditHours = credits
             };
             courses.Add(course);
-            course.Roster = new List<Person>(); // initialize roster 
-            course.Assignments = new List<Assignment>(); // initialize assignment list 
             Console.WriteLine("Course created successfully!");
+
+            string defname = "Unweighted";
+            int defweight = 1;
+            AssignmentGroup unweightedGroup = new AssignmentGroup(defname, defweight); //create default unweighted assignment group
+            course.AddAssignmentGroup(unweightedGroup);
+
             Console.ReadKey();
         }
 
@@ -170,6 +198,7 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
             if (course == null)
             {
                 Console.WriteLine("Course not found.");
+                Console.ReadKey();
                 return;
             }
 
@@ -180,7 +209,7 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
 
             Console.WriteLine("Enter ID of student to be added to course:");
             int id = int.Parse(Console.ReadLine());
-            Person student = students.FirstOrDefault(s => s?.ID == id);
+            Person student = students?.FirstOrDefault(s => s?.ID == id);
             if (student == null)
             {
                 Console.WriteLine("Student not found.");
@@ -222,7 +251,7 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
                 Console.ReadKey();
                 return;
             }
-            Console.WriteLine("Enter ID of student to be added to course:");
+            Console.WriteLine("Enter ID of student to be removed from course:");
             int id = int.Parse(Console.ReadLine());
             Person student = students.FirstOrDefault(s => s?.ID == id);
             if (student == null)
@@ -350,7 +379,7 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
                 }
             }
 
-                Console.ReadKey();
+            Console.ReadKey();
         }
 
         static void UpdateCourse()
@@ -375,8 +404,11 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
             string name = Console.ReadLine() ?? string.Empty;
             Console.Write("Description: ");
             string description = Console.ReadLine() ?? string.Empty;
+            Console.Write("Credit Hours: ");
+            int credits = Convert.ToInt32(Console.ReadLine() ?? string.Empty);
             course.Name = name;
             course.Description = description;
+            course.CreditHours = credits;
             Console.WriteLine("{0} has been updated.", course.Name);
             Console.ReadKey();
         }
@@ -424,7 +456,7 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
                 return;
             }
             Console.Write("Enter the course code: ");
-            string code = Console.ReadLine() ?? string.Empty;
+            string code = Console.ReadLine().ToUpper().Replace(" ", "") ?? string.Empty;
             Course course = courses.Find(c => c?.Code == code);
             if (course == null)
             {
@@ -443,6 +475,12 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
             DateTime dueDate = DateTime.Parse(Console.ReadLine());
             Assignment assignment = new Assignment(name, description, totalPoints, dueDate);
             course.Assignments.Add(assignment);
+
+            // automatically assign to default unweighted group
+            string defaultGroupName = "Unweighted";
+            AssignmentGroup defaultGroup = course?.AssignmentGroups?.Find(g => g?.Name == defaultGroupName);
+            defaultGroup?.AddAssignment(assignment);
+
             Console.WriteLine("{0} has been added to {1}.", assignment.Name, course.Name);
             Console.ReadKey();
         }
@@ -466,29 +504,153 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
             }
 
             Console.WriteLine("{0} ({1})", course.Name, course.Code);
+            Console.WriteLine("Credit Hours: {0}", course.CreditHours);
             Console.WriteLine("Description: {0}", course.Description);
-            Console.WriteLine("Students:");
-
-            bool emptyroster = !course.Roster.Any();
-            if (emptyroster)
+/*
+            // Print out modules
+            Console.WriteLine("Modules:");
+            foreach (var module in Modules)
             {
-                Console.WriteLine("There are no students assigned to this course.");
+                Console.WriteLine($"{module.Code} - {module.Name}");
             }
+*/
 
-            foreach (Person student in course.Roster)
-            {
-                Console.WriteLine("- {0}", student.Name);
-            }
             Console.WriteLine("Assignments:");
             foreach (Assignment assignment in course.Assignments)
             {
-                Console.WriteLine("- {0} ({1} points, due {2})", assignment.Name, assignment.TotalAvailablePoints, assignment.DueDate);
+                Console.WriteLine("- {0} (#{1}) ({2} points, due {3})", assignment.Name, assignment.AssignmentId, assignment.TotalAvailablePoints, assignment.DueDate);
             }
+
+
             Console.ReadKey();
         }
 
+        static void AssignGradeToStudent()
+        {
+            Console.Write("Enter course code: ");
+            string courseCode = Console.ReadLine() ?? string.Empty;
+            Course course = courses.Find(c => c?.Code == courseCode);
+            if (course == null)
+            {
+                Console.WriteLine("Course not found.");
+                Console.ReadKey();
+                return;
+            }
 
+            Console.Write("Enter assignment ID: ");
+            int assignmentId = int.Parse(Console.ReadLine());
 
+            Assignment assignment = course?.Assignments.Find(a => a?.AssignmentId == assignmentId);
 
+            if (assignment == null)
+            {
+                Console.WriteLine($"Assignment with ID {assignmentId} not found in course {courseCode}");
+                Console.ReadKey();
+                return;
+            }
+
+            Console.Write("Enter student ID: ");
+            int id = int.Parse(Console.ReadLine());
+            Person student = students.FirstOrDefault(s => s?.ID == id);
+            if (student == null)
+            {
+                Console.WriteLine("Student not found.");
+                return;
+            }
+            if (!course.Roster.Contains(student))
+            {
+                Console.WriteLine("Student is not enrolled in this course.");
+                return;
+            }
+
+            if (student is Instructor || student is TA)
+            {
+                Console.WriteLine("Only students can be assigned grades.");
+                return;
+            }
+
+            Console.Write($"Enter grade for {student.Name}: ");
+            int grade = int.Parse(Console.ReadLine());
+
+            if (assignment.Grades.ContainsKey(student))
+            {
+                assignment.Grades[student] = grade;
+            }
+            else
+            {
+                assignment.Grades.Add(student, grade);
+            }
+
+            Console.WriteLine($"Grade of {grade} assigned to {student.Name} for assignment {assignment.Name} ({assignment.AssignmentId}) in course {courseCode}");
+            Console.ReadKey();
+        }
+
+        static bool IsCodeUnique(string code) // prevent duplicate codes
+        {
+            return !courseCodes.Contains(code); // if code is in courseCodes has, return false
+        }
+
+        static void GoToCourseManager()
+        {
+            Console.Write("Enter course code to manage: ");
+            string courseCode = Console.ReadLine() ?? string.Empty;
+            Course course = courses.Find(c => c?.Code == courseCode);
+            if (course == null)
+            {
+                Console.WriteLine("Course not found.");
+                Console.ReadKey();
+                return;
+            }
+            CourseManager.Start(course);
+        }
+
+        static void CalculateGPA()
+        {
+            double totalGradePoints = 0;
+            int totalCreditHours = 0;
+            double gpa = 0;
+
+            Console.Write("Enter student ID: ");
+            int id = int.Parse(Console.ReadLine());
+            Person student = students.FirstOrDefault(s => s?.ID == id);
+            if (student == null)
+            {
+                Console.WriteLine("Student not found.");
+                Console.ReadKey();
+                return;
+            }
+
+            if (student is Instructor || student is TA)
+            {
+                Console.WriteLine("Only students can have GPAs.");
+                Console.ReadKey();
+                return;
+            }
+
+            foreach (Course course in courses)
+            {
+                if (course.Roster.Contains(student))
+                {
+                    totalCreditHours += course.CreditHours;
+
+                    foreach (var group in course.AssignmentGroups)
+                    {
+                        int totalPoints = group.GetTotalPoints(student);
+                        int maxPoints = group.Assignments.Count * 100;
+
+                        if (maxPoints > 0)
+                        {
+                            double groupGrade = (double)totalPoints / maxPoints;
+                            totalGradePoints += groupGrade * group.Weight * course.CreditHours;
+                        }
+                    }
+                }
+            }
+
+            gpa = totalGradePoints / totalCreditHours;
+            Console.WriteLine($"GPA for Student [{student.ID}] {student.Name}: {0}");
+            Console.ReadKey();
+
+        }
     }
 }
