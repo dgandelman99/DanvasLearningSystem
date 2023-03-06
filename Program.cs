@@ -9,7 +9,7 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
     class Program
     {
         static List<Course> courses = new List<Course>();
-        static List<Person> students = new List<Person>();
+        static List<Person> people = new List<Person>();
         private static HashSet<string> courseCodes = new HashSet<string>();
 
         static void Main(string[] args)
@@ -26,8 +26,8 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
                 Console.WriteLine("4. Remove a student from a course");
                 Console.WriteLine("5. List all courses");
                 Console.WriteLine("6. Search for courses");
-                Console.WriteLine("7. List all students");
-                Console.WriteLine("8. Search for a student");
+                Console.WriteLine("7. List all people");
+                Console.WriteLine("8. Search for a person");
                 Console.WriteLine("9. List all courses for a student");
                 Console.WriteLine("10. Update a course's information");
                 Console.WriteLine("11. Update a student's information");
@@ -36,9 +36,11 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
                 Console.WriteLine("14. Grade a student's assignment");
                 Console.WriteLine("15. Course Content Manager");
                 Console.WriteLine("16. Calculate Student GPA");
+                Console.WriteLine("17. Create Instructor or TA");
+                Console.WriteLine("18. Assign Instructor or TA to Course");
                 Console.WriteLine("0. Exit");
 
-                int choice = GetChoice(16);
+                int choice = GetChoice(18);
 
                 switch (choice)
                 {
@@ -89,6 +91,12 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
                         break;
                     case 16:
                         CalculateGPA();
+                        break;
+                    case 17:
+                        CreateFaculty();
+                        break;
+                    case 18:
+                        AssignFaculty();
                         break;
                     case 0:
                         choice = 0;
@@ -164,7 +172,7 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
             {
                 Classification classification = Person.ConvertStringToClassification(classificationString);
                 Person student = new Person(name, classification);
-                students.Add(student);
+                people.Add(student);
                 Console.WriteLine("Student created successfully!");
             }
             catch (ArgumentException ex)
@@ -183,7 +191,7 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
                 Console.ReadKey();
                 return;
             }
-            if (students.Count == 0)
+            if (people.Count == 0)
             {
                 Console.WriteLine("There are no students to add to a course.");
                 Console.ReadKey();
@@ -209,7 +217,7 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
 
             Console.WriteLine("Enter ID of student to be added to course:");
             int id = int.Parse(Console.ReadLine());
-            Person student = students?.FirstOrDefault(s => s?.ID == id);
+            Person student = people?.FirstOrDefault(s => s?.ID == id);
             if (student == null)
             {
                 Console.WriteLine("Student not found.");
@@ -236,7 +244,7 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
                 Console.ReadKey();
                 return;
             }
-            if (students.Count == 0)
+            if (people.Count == 0)
             {
                 Console.WriteLine("There are no students to remove from a course.");
                 Console.ReadKey();
@@ -253,7 +261,7 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
             }
             Console.WriteLine("Enter ID of student to be removed from course:");
             int id = int.Parse(Console.ReadLine());
-            Person student = students.FirstOrDefault(s => s?.ID == id);
+            Person student = people.FirstOrDefault(s => s?.ID == id);
             if (student == null)
             {
                 Console.WriteLine("Student not found.");
@@ -271,17 +279,36 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
 
         static void ListAllCourses()
         {
+            var navigator = new ListNavigator<Course>(courses);
+
+
             if (courses.Count == 0)
             {
                 Console.WriteLine("There are no courses to list.");
                 Console.ReadKey();
                 return;
             }
+
             Console.WriteLine("Courses:");
-            foreach (Course course in courses)
+
+            while (true)
             {
-                Console.WriteLine("{0} - {1}", course.Code, course.Name);
+                var page = navigator.GetCurrentPage();
+                foreach (var course in page)
+                {
+                    Console.WriteLine(course);
+                }
+
+                if (!navigator.HasNextPage)
+                {
+                    Console.WriteLine("Last page!");
+                    break;
+                }
+
+                Console.WriteLine("Press any key to continue to the next page...");
+                Console.ReadKey();
             }
+
             Console.ReadKey();
         }
 
@@ -312,23 +339,42 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
 
         static void ListAllStudents()
         {
-            if (students.Count == 0)
+            var navigator = new ListNavigator<Person>(people);
+
+
+            if (people.Count == 0)
             {
                 Console.WriteLine("There are no students to list.");
                 Console.ReadKey();
                 return;
             }
-            Console.WriteLine("Students:");
-            foreach (Person student in students)
+
+            Console.WriteLine("People:");
+
+            while (true)
             {
-                Console.WriteLine($"[{student.ID}] - {student.Name}");
+                var page = navigator.GetCurrentPage();
+                foreach (var person in page)
+                {
+                    Console.WriteLine(person);
+                }
+
+                if (!navigator.HasNextPage)
+                {
+                    Console.WriteLine("Last page!");
+                    break;
+                }
+
+                Console.WriteLine("Press any key to continue to the next page...");
+                Console.ReadKey();
             }
+
             Console.ReadKey();
         }
 
         static void SearchStudents()
         {
-            if (students.Count == 0)
+            if (people.Count == 0)
             {
                 Console.WriteLine("There are no students to search.");
                 Console.ReadKey();
@@ -336,7 +382,7 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
             }
             Console.Write("Enter the search query: ");
             string query = Console.ReadLine().ToLower() ?? string.Empty;
-            List<Person> results = students.FindAll(s => s.Name.ToLower().Contains(query));
+            List<Person> results = people.FindAll(s => s.Name.ToLower().Contains(query));
             if (results.Count == 0)
             {
                 Console.WriteLine("No results found.");
@@ -353,15 +399,15 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
 
         static void ListCoursesForStudent()
         {
-            if (students.Count == 0)
+            if (people.Count == 0)
             {
                 Console.WriteLine("There are no students to list courses for.");
                 Console.ReadKey();
                 return;
             }
             Console.WriteLine("Enter a student ID to list courses for:");
-            int id = int.Parse(Console.ReadLine());
-            Person student = students.FirstOrDefault(s => s?.ID == id);
+            int id = int.Parse(Console.ReadLine() ?? string.Empty);
+            Person student = people.FirstOrDefault(s => s?.ID == id);
 
             if (student == null)
             {
@@ -415,7 +461,7 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
 
         static void UpdateStudent()
         {
-            if (students.Count == 0)
+            if (people.Count == 0)
             {
                 Console.WriteLine("There are no students to update.");
                 Console.ReadKey();
@@ -425,7 +471,7 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
             Console.WriteLine("Enter ID for student to be updated:");
             int id = int.Parse(Console.ReadLine());
 
-            Person student = students?.FirstOrDefault(s => s?.ID == id);
+            Person student = people?.FirstOrDefault(s => s?.ID == id);
 
             if (student == null)
             {
@@ -495,7 +541,7 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
             }
             Console.Write("Enter the course code: ");
             string code = Console.ReadLine() ?? string.Empty;
-            Course course = courses.Find(c => c?.Code == code);
+            Course course = courses?.Find(c => c?.Code == code);
             if (course == null)
             {
                 Console.WriteLine("Course not found.");
@@ -506,14 +552,13 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
             Console.WriteLine("{0} ({1})", course.Name, course.Code);
             Console.WriteLine("Credit Hours: {0}", course.CreditHours);
             Console.WriteLine("Description: {0}", course.Description);
-/*
-            // Print out modules
-            Console.WriteLine("Modules:");
-            foreach (var module in Modules)
+            Console.WriteLine("------------");
+            Console.WriteLine("Faculty:");
+
+            foreach (var person in course.Faculty)
             {
-                Console.WriteLine($"{module.Code} - {module.Name}");
+                Console.WriteLine(person);
             }
-*/
 
             Console.WriteLine("Assignments:");
             foreach (Assignment assignment in course.Assignments)
@@ -551,7 +596,7 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
 
             Console.Write("Enter student ID: ");
             int id = int.Parse(Console.ReadLine());
-            Person student = students.FirstOrDefault(s => s?.ID == id);
+            Person student = people.FirstOrDefault(s => s?.ID == id);
             if (student == null)
             {
                 Console.WriteLine("Student not found.");
@@ -612,7 +657,7 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
 
             Console.Write("Enter student ID: ");
             int id = int.Parse(Console.ReadLine());
-            Person student = students.FirstOrDefault(s => s?.ID == id);
+            Person student = people.FirstOrDefault(s => s?.ID == id);
             if (student == null)
             {
                 Console.WriteLine("Student not found.");
@@ -632,23 +677,97 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
                 if (course.Roster.Contains(student))
                 {
                     totalCreditHours += course.CreditHours;
-
-                    foreach (var group in course.AssignmentGroups)
-                    {
-                        int totalPoints = group.GetTotalPoints(student);
-                        int maxPoints = group.Assignments.Count * 100;
-
-                        if (maxPoints > 0)
-                        {
-                            double groupGrade = (double)totalPoints / maxPoints;
-                            totalGradePoints += groupGrade * group.Weight * course.CreditHours;
-                        }
-                    }
+                    totalGradePoints += course.GetWeightedAverage(student);
+                    double localAverage = course.GetWeightedAverage(student);
+                    Console.WriteLine($"Grade for {course.Name}: {localAverage}");
                 }
             }
 
             gpa = totalGradePoints / totalCreditHours;
-            Console.WriteLine($"GPA for Student [{student.ID}] {student.Name}: {0}");
+            Console.WriteLine($"GPA for Student [{student.ID}] {student.Name}: {gpa}");
+            Console.ReadKey();
+
+        }
+
+        static void CreateFaculty()
+        {
+            Console.Write("Enter the employee's name: ");
+            string name = Console.ReadLine() ?? string.Empty;
+            Console.WriteLine("Enter Classification: (T) TA / (I) Instructor");
+            string classificationString = Console.ReadLine() ?? string.Empty;
+            Person.ConvertStringToClassification(classificationString);
+
+            try
+            {
+                Classification classification = Person.ConvertStringToClassification(classificationString);
+                Person faculty = new Person(name, classification);
+                people.Add(faculty);
+                Console.WriteLine("Employee created successfully!");
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine("Invalid classification string: " + ex.Message);
+            }
+
+            Console.ReadKey();
+
+        }
+
+        static void AssignFaculty()
+        {
+
+            if (courses.Count == 0)
+            {
+                Console.WriteLine("There are no courses to assign an employee to.");
+                Console.ReadKey();
+                return;
+            }
+
+            /*
+            if (Person.nextEmplID == 1)
+            {
+                Console.WriteLine("There is no faculty to assign to a course.");
+                Console.ReadKey();
+                return;
+            } */
+
+            Console.WriteLine("Enter the course code:");
+            string code = Console.ReadLine() ?? string.Empty;
+
+            Course course = courses.FirstOrDefault(c => c?.Code == code);
+
+            if (course == null)
+            {
+                Console.WriteLine("Course not found.");
+                Console.ReadKey();
+                return;
+            }
+
+            if (course.Faculty == null)
+            {
+                course.Faculty = new List<Person>(); // create the roster list if it doesn't exist
+            }
+
+            Console.WriteLine("Enter EMPLID of faculty to be added to course:");
+            int id = int.Parse(Console.ReadLine() ?? string.Empty);
+            Person employee = people?.FirstOrDefault(s => s?.emplID == id);
+            if (employee == null)
+            {
+                Console.WriteLine("Employee not found.");
+                Console.ReadKey();
+                return;
+            }
+            if (course.Faculty.Contains(employee))
+            {
+                Console.WriteLine("Employee is already assigned to this course.");
+                Console.ReadKey();
+                return;
+            }
+
+            course.Faculty.Add(employee);
+            Console.WriteLine($"{employee.Name} added to {course.Name} roster.");
+
+
             Console.ReadKey();
 
         }

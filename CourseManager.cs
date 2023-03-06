@@ -27,7 +27,7 @@ namespace Library.Danvas3.models
                 Console.WriteLine("1. Display Course Information");
                 Console.WriteLine("2. Manage Assignments");
                 Console.WriteLine("3. Manage Modules");
-                Console.WriteLine("4. Manage Assignments");
+                Console.WriteLine("4. Manage Announcements");
                 Console.WriteLine("5. Exit");
 
                 int choice = GetChoice(5);
@@ -44,7 +44,7 @@ namespace Library.Danvas3.models
                         ManageModules();
                         break;
                     case 4:
-                        ManageAssignments();
+                        ManageAnnouncements();
                         break;
                     case 5:
                         Console.WriteLine("Exiting Course Manager...");
@@ -451,8 +451,8 @@ namespace Library.Danvas3.models
             }
 
 
-            static void ManageAssignments()
-            {
+            static void ManageAnnouncements()
+            { 
                 Console.Clear();
                 Console.WriteLine("Danvas 3 - Learning Management System");
                 Console.WriteLine("============COURSE ANNOUNCEMENT MANAGER============");
@@ -467,16 +467,16 @@ namespace Library.Danvas3.models
                 switch (choice2)
                 {
                     case 1:
-                        CreateModule();
+                        CreateAnnouncement();
                         break;
                     case 2:
-                        ReadModules();
+                        ReadAnnouncements();
                         break;
                     case 3:
-                        UpdateModule();
+                        UpdateAnnouncement();
                         break;
                     case 4:
-                        DeleteModule();
+                        DeleteAnnouncement();
                         break;
                     case 0:
                         Console.WriteLine("Returning...");
@@ -490,6 +490,98 @@ namespace Library.Danvas3.models
 
             }
 
+
+            static void CreateAnnouncement()
+            {
+                Console.Write("Enter title: ");
+                string title = Console.ReadLine() ?? string.Empty;
+
+                Console.Write("Enter message: ");
+                string content = Console.ReadLine() ?? string.Empty;
+
+                Announcement announcement = new Announcement
+                {
+                    Title = title,
+                    Content = content,
+                    PublishDate = DateTime.Now
+                };
+
+                _course?.AddAnnouncement(announcement);
+
+                Console.WriteLine("Announcement created successfully!");
+
+                Console.ReadKey();
+
+            }
+            static void ReadAnnouncements()
+            {
+                var announcements = _course.Announcements;
+                if (announcements.Count == 0)
+                {
+                    Console.WriteLine("No announcements found.");
+                    Console.ReadKey();
+                    return;
+                }
+
+                Console.WriteLine("\nAnnouncements:");
+                foreach (var a in announcements)
+                {
+                    Console.WriteLine("------------------------------------------------------");
+                    Console.WriteLine($"{a.Title} [{a.ID}] ({a.PublishDate})");
+                    Console.WriteLine($"{a.Content}");
+                    Console.WriteLine("~~Press any key to continue...~~");
+                    Console.ReadKey();
+                }
+                Console.ReadKey();
+            }
+            static void UpdateAnnouncement()
+            {
+                Console.Write("Enter announcement ID: ");
+                int announcementId = int.Parse(Console.ReadLine() ?? string.Empty);
+
+                var announcementToUpdate = _course.GetAnnouncementById(announcementId);
+                if (announcementToUpdate == null)
+                {
+                    Console.WriteLine("Announcement not found.");
+                    Console.ReadKey();
+                    return;
+                }
+
+                Console.Write("Enter new title (or press enter to keep the same): ");
+                string newTitle = Console.ReadLine() ?? string.Empty;
+                if (!string.IsNullOrEmpty(newTitle))
+                {
+                    announcementToUpdate.Title = newTitle;
+                }
+
+                Console.Write("Enter new message (or press enter to keep the same): ");
+                string newContent = Console.ReadLine() ?? string.Empty;
+                if (!string.IsNullOrEmpty(newContent))
+                {
+                    announcementToUpdate.Content = newContent;
+                }
+
+                Console.WriteLine("Announcement updated successfully!");
+                Console.ReadKey();
+            }
+            static void DeleteAnnouncement()
+            {
+                Console.Write("Enter announcement ID: ");
+                int announcementIdToDelete = int.Parse(Console.ReadLine() ?? string.Empty);
+
+                var announcementToDelete = _course.GetAnnouncementById(announcementIdToDelete);
+                if (announcementToDelete == null)
+                {
+                    Console.WriteLine("Announcement not found.");
+                    Console.ReadKey();
+                    return;
+                }
+
+                _course.DeleteAnnouncement(announcementIdToDelete);
+
+                Console.WriteLine("Announcement deleted successfully!");
+                Console.ReadKey();
+            }
         }
     }
 
