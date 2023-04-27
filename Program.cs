@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Xml.Linq;
 using Library.Danvas3.models;
 
-namespace Danvas3 // Note: actual namespace depends on the project name.
+namespace Danvas3
 {
     class Program
     {
@@ -569,7 +569,7 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
 
             Console.ReadKey();
         }
-
+        //Still need to add Assign Grade method
         static void AssignGradeToStudent()
         {
             Console.Write("Enter course code: ");
@@ -649,7 +649,7 @@ namespace Danvas3 // Note: actual namespace depends on the project name.
             }
             CourseManager.Start(course);
         }
-
+        // Still need to add GPA method
         static void CalculateGPA()
         {
             double totalGradePoints = 0;
